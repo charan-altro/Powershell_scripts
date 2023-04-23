@@ -1,0 +1,76 @@
+#Prompt user for directories to organize
+$Directories = Read-Host "Enter directories to organize (separate multiple directories with commas):"
+$Directories = $Directories.Split(",").Trim()
+
+
+# Prompt user destination directories
+$destinations = @{}
+$extensions = @{}
+$extensionTypes = @("Pictures", "Documents", "Videos", "Music", "Code", "Archives")
+$extensions["Pictures"] = @("jpg", "jpeg", "png", "gif", "bmp")
+$extensions["Documents"] = @("doc", "docx", "txt", "pdf", "pptx")
+$extensions["Videos"] = @("mp4", "avi", "mov", "mkv")
+$extensions["Music"] = @("mp3", "wav", "wma", "m4a")
+$extensions["Code"] = @("py", "java", "c", "cpp", "cs", "html", "css", "js", "php", "rb")
+$extensions["Archives"] = @("zip", "rar", "7z", "gz", "tar")
+
+foreach ($type in $extensionTypes) {
+    $extensions[$type] = $extString.Split(",").Trim()
+    $destinations[$type] = Read-Host "Enter destination directory for $type:"
+}
+
+# Exclude software package files and files with specified extensions from being moved
+$packageKeywords = @("software", "setup", "installer")
+$packageRegex = "^.*($($packageKeywords -join "|")).*(\.exe|\.msi|$("("+($extensions.Values | Select-Object -Unique | ForEach-Object {"\\" + $_}) -join "|") + ")$"
+
+# Prompt user for report file option
+$reportFile = Read-Host "Generate report file? (Y/N)"
+if ($reportFile -eq "Y") {
+    $reportFileName = Read-Host "Enter report file name (default is download_report.txt):"
+    if ($reportFileName -eq "") {
+        $reportFileName = "download_report.txt"
+    }
+    $reportFile = Join-Path $Directories[0] $reportFileName
+}
+else {
+    $reportFile = $null
+}
+
+#Initializing Hashtable for tracking duplicates
+$Duplicates = @{}
+
+#Loops through each directory in Directories variable
+foreach ($Directory in $Directories) {
+# Gets a list of all the files in the directory and subdirectories
+$Files = Get-ChildItem $Directory -File -Recurse
+foreach ($File in $Files) {
+# Ignore software package files
+if ($File.FullName -match $PackageRegex) {
+continue
+}
+# Checks each file's extension and sends it to the appropriate destination
+$Dest = $null
+foreach ($Type in $Destinations.Keys) {
+    if ($Destinations[$Type] -contains $File.Extension) {
+        $Dest = $Destinations[$Type]
+        break
+    }
+}
+
+if ($Dest -eq $null) {
+    # Ignore file if it doesn't match any extension
+    continue
+}
+
+# Check for duplicate file
+$Hash = Get-FileHash $File.FullName | Select-Object -ExpandProperty Hash
+if ($Duplicates.ContainsKey($Hash)) {
+    continue
+}
+else {
+    $Duplicates[$Hash] = $true
+}
+
+# Move file to destination
+Move-Item -Path $File.FullName -Destination $Dest -Force
+}
