@@ -7,7 +7,7 @@ This PowerShell script is designed to organize files in a specified directory in
 3.	Navigate to the directory where the script is saved.
 4.	Run the script using the following command:
 
-.\FileOrganizer.ps1 -FolderPath <Path to folder> 
+.\Files_organizer.ps1 -FolderPath <Path to folder> 
 Replace <Path to folder> with the path to the folder you want to organize.
   
 ## Notes
