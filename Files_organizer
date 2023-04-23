@@ -16,8 +16,7 @@ $extensions["Archives"] = @("zip", "rar", "7z", "gz", "tar")
 
 foreach ($type in $extensionTypes) {
     $extensions[$type] = $extString.Split(",").Trim()
-    $destinations[$type] = Read-Host "Enter destination directory for $type:"
-}
+    $destinations[$type] = Read-Host "Enter destination directory for [$type]:" }
 
 # Exclude software package files and files with specified extensions from being moved
 $packageKeywords = @("software", "setup", "installer")
@@ -38,7 +37,7 @@ else {
 
 #Initializing Hashtable for tracking duplicates
 $Duplicates = @{}
-
+    
 #Loops through each directory in Directories variable
 foreach ($Directory in $Directories) {
 # Gets a list of all the files in the directory and subdirectories
@@ -73,4 +72,5 @@ else {
 
 # Move file to destination
 Move-Item -Path $File.FullName -Destination $Dest -Force
+}
 }
